@@ -46,16 +46,56 @@ Set-EnvironmentVariable -Name "NUGET_HTTP_CACHE_PATH" -Value "$CodeDir\.nuget\.h
 # Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"C:\Users\david\OneDrive\Code\Scripts\\init.cmd`"" -Type ExpandString
 
 Print-Message "Showing file extensions in Explorer"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Data "0" -Type DWord
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Data 0 -Type DWord > $null
 
 Print-Message "Showing hidden files and directories in Explorer"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Data "1" -Type DWord
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Data 1 -Type DWord > $null
 
 Print-Message "Restore classic context menu"
-Create-RegistryKey -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+$restartExplorer = Set-RegistryValue -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+if ($restartExplorer)
+{
+    # Restart explorer to apply the change
+    Stop-Process -Name explorer -Force
+}
 
-Print-Message "Enable Developer Mode"
 # TODO: Need admin
-#call powershell -Command "Start-process -filepath %ComSpec% -argumentlist @('/c','reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /v "AllowDevelopmentWithoutDevLicense" /d 1 /t REG_DWORD /f >NUL') -Verb RunAs"
+# Print-Message "Enable Developer Mode"
+# Set-RegistryValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Data 1 -Type DWord
+
+# TODO: Need admin
+# Print-Message "Enable Remote Desktop"
+# Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Data 0 -Type DWord
+# Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+# TODO: Need admin
+# Print-Message "Enable Long Paths"
+# Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord
+
+Print-Message "Installing Azure Artifacts Credential Provider"
+Invoke-Expression "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | Out-Null
+
+Print-Message "Force NuGet to use auth dialogs"
+Set-EnvironmentVariable -Name "NUGET_CREDENTIALPROVIDER_FORCE_CANSHOWDIALOG_TO" -Value "true"
+
+Print-Message "Opting out of .NET Telemetry"
+Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
+
+# TODO: Need admin
+# Print-Message "Excluding CodeDir from Defender"
+# Add-MpPreference -ExclusionPath $CodeDir
+
+# TODO: Need admin
+<#
+Print-Message "Uninstalling Bloatware Appx"
+$Bloatware = @(
+    "Microsoft.549981C3F5F10",
+    "Microsoft.BingWeather",
+    "Microsoft.GetHelp",
+    "Microsoft.Getstarted",
+    "Microsoft.MixedReality.Portal"
+)
+ForEach-Object { Get-AppxPackage -allusers $_ | Remove-AppxPackage }
+#>
 
 # TODO: Port more of setup.cmd
