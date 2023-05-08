@@ -1,4 +1,4 @@
-Import-Module -DisableNameChecking "$PSScriptRoot\Console.psm1"
+Import-Module "$PSScriptRoot\Console.psm1"
 
 function Set-EnvironmentVariable()
 {
@@ -10,9 +10,17 @@ function Set-EnvironmentVariable()
         [String] $Value
     )
 
-    Print-Debug "Setting $Name=$Value"
-    [Environment]::SetEnvironmentVariable($Name, $Value, "Process")
-    [Environment]::SetEnvironmentVariable($Name, $Value, "User")
+    $existingValue = [Environment]::GetEnvironmentVariable($Name, "User")
+    if ($existingValue -eq $Value)
+    {
+        Write-Debug "$Name already set to $Value"
+    }
+    else
+    {
+        Write-Debug "Setting $Name=$Value"
+        [Environment]::SetEnvironmentVariable($Name, $Value, "Process")
+        [Environment]::SetEnvironmentVariable($Name, $Value, "User")
+    }
 }
 
 function Add-PathVariable()
@@ -31,15 +39,15 @@ function Add-PathVariable()
         $existingPath = [Environment]::GetEnvironmentVariable("Path", "User")
         $regex = "^$([regex]::Escape($Path))\\?"
         $matchingPath = $existingPath -split ';' | Where-Object { $_ -Match $regex }
-        if ($matchingPath -eq $null)
+        if ($matchingPath)
         {
-            Print-Debug "Adding $Path to the Path"
-            [Environment]::SetEnvironmentVariable("Path", "$existingPath;$Path", "User")
-            Refresh-PathVariable
+            Write-Debug "$Path is already on the Path"
         }
         else
         {
-            Print-Debug "$Path is already on the Path"
+            Write-Debug "Adding $Path to the Path"
+            [Environment]::SetEnvironmentVariable("Path", "$existingPath;$Path", "User")
+            Update-PathVariable
         }
     }
     else
@@ -48,7 +56,7 @@ function Add-PathVariable()
     }
 }
 
-function Refresh-PathVariable()
+function Update-PathVariable()
 {
     $Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     [Environment]::SetEnvironmentVariable("Path", $Path, "Process")

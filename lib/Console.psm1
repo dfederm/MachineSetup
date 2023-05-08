@@ -1,4 +1,4 @@
-function Print-Header()
+function Write-Header()
 {
     [CmdletBinding()]
     param (
@@ -9,7 +9,7 @@ function Print-Header()
     Write-Host -ForegroundColor Cyan $Message
 }
 
-function Print-Message()
+function Write-Message()
 {
     [CmdletBinding()]
     param (
@@ -21,7 +21,7 @@ function Print-Message()
     Write-Host -ForegroundColor Gray $Message
 }
 
-function Print-Debug()
+function Write-Debug()
 {
     [CmdletBinding()]
     param (
@@ -33,7 +33,7 @@ function Print-Debug()
     Write-Host -ForegroundColor DarkGray $Message
 }
 
-function Print-Error()
+function Write-Error()
 {
     [CmdletBinding()]
     param (

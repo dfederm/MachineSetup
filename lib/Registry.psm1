@@ -1,4 +1,4 @@
-Import-Module -DisableNameChecking "$PSScriptRoot\Console.psm1"
+Import-Module "$PSScriptRoot\Console.psm1"
 
 function Set-RegistryValue()
 {
@@ -12,9 +12,9 @@ function Set-RegistryValue()
     )
 
     $existingValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Ignore
-    if ($existingValue -eq $null)
+    if ($null -eq $existingValue)
     {
-        Print-Debug "Adding registry value [$Path] $Name=$Data"
+        Write-Debug "Adding registry value [$Path] $Name=$Data"
 
         if ($Name)
         {
@@ -41,7 +41,7 @@ function Set-RegistryValue()
 
         if ($existingData -ne $Data)
         {
-            Print-Debug "Setting registry [$Path] $Name=$Data (old data $existingData)"
+            Write-Debug "Setting registry [$Path] $Name=$Data (old data $existingData)"
             if ($Name)
             {
                 Set-ItemProperty -Path $Path -Name $Name -Value $Data
@@ -55,7 +55,7 @@ function Set-RegistryValue()
         }
         else
         {
-            Print-Debug "Registry already set [$Path] $Name=$Data"
+            Write-Debug "Registry already set [$Path] $Name=$Data"
             return $false
         }
     }
