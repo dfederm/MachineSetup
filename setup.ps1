@@ -3,10 +3,9 @@ param (
 )
 
 Import-Module "$PSScriptRoot\lib\Console.psm1"
+Import-Module "$PSScriptRoot\lib\Elevation.psm1"
 Import-Module "$PSScriptRoot\lib\Environment.psm1"
 Import-Module "$PSScriptRoot\lib\Registry.psm1"
-
-# TODO: Bootstrap!
 
 Write-Header "Gathering information"
 
@@ -49,7 +48,7 @@ Set-EnvironmentVariable -Name "NUGET_HTTP_CACHE_PATH" -Value "$CodeDir\.nuget\.h
 
 # TODO: Should be scripts dir. Need bootstrapping!
 # Write-Message "Configuring cmd Autorun"
-# Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"C:\Users\david\OneDrive\Code\Scripts\\init.cmd`"" -Type ExpandString
+# Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"C:\Users\david\OneDrive\Code\Scripts\init.cmd`"" -Type ExpandString
 
 Write-Message "Showing file extensions in Explorer"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Data 0 -Type DWord > $null
@@ -65,18 +64,22 @@ if ($restartExplorer)
     Stop-Process -Name explorer -Force
 }
 
-# TODO: Need admin
-# Write-Message "Enable Developer Mode"
-# Set-RegistryValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Data 1 -Type DWord
+Write-Message "Disabling Edge tabs showing in Alt+Tab"
+Set-RegistryValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MultiTaskingAltTabFilter" -Data 3 -Type DWord > $null
 
-# TODO: Need admin
-# Write-Message "Enable Remote Desktop"
-# Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Data 0 -Type DWord
-# Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+Write-Message "Enable Developer Mode"
+Set-RegistryValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Data 1 -Type DWord -Elevate > $null
 
-# TODO: Need admin
-# Write-Message "Enable Long Paths"
-# Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord
+Write-Message "Enable Remote Desktop"
+Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Data 0 -Type DWord -Elevate > $null
+# TODO: Figure out how to test this first before always elevating. Overall this script should be idempotent and not require elevation if no changes are needed.
+$EnableRemoteDesktopFirewallBlock = {
+    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+}
+Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($EnableRemoteDesktopFirewallBlock))
+
+Write-Message "Enable Long Paths"
+Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord -Elevate > $null
 
 Write-Message "Installing Azure Artifacts Credential Provider"
 Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | Out-Null
@@ -87,27 +90,33 @@ Set-EnvironmentVariable -Name "NUGET_CREDENTIALPROVIDER_FORCE_CANSHOWDIALOG_TO" 
 Write-Message "Opting out of .NET Telemetry"
 Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
 
-# TODO: Need admin
-# Write-Message "Excluding CodeDir from Defender"
-# Add-MpPreference -ExclusionPath $CodeDir
-
-# TODO: Need admin
-<#
-Write-Header "Uninstalling Bloatware Appx"
-$BloatwareApps = @(
-    "Microsoft.549981C3F5F10" # Cortana
-    "Microsoft.BingWeather"
-    "Microsoft.GetHelp"
-    "Microsoft.Getstarted"
-    "Microsoft.MixedReality.Portal"
-)
-foreach ($appName in $BloatwareApps)
-{
-    Write-Message "Uninstalling $appName"
-    $app = Get-AppxPackage -AllUsers $appName
-    Remove-AppxPackage -Package $app -AllUsers
+Write-Message "Excluding CodeDir from Defender"
+# TODO: Figure out how to test this first before always elevating. Overall this script should be idempotent and not require elevation if no changes are needed.
+$DefenderExclusionBlock = {
+    Add-MpPreference -ExclusionPath $CodeDir
 }
-#>
+Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($DefenderExclusionBlock))
+
+Write-Header "Uninstalling Bloatware Appx"
+$UninstallBloatwareBlock = {
+    $BloatwareApps = @(
+        "Microsoft.549981C3F5F10" # Cortana
+        "Microsoft.BingWeather"
+        "Microsoft.GetHelp"
+        "Microsoft.Getstarted"
+        "Microsoft.MixedReality.Portal"
+    )
+    foreach ($appName in $BloatwareApps)
+    {
+        $app = Get-AppxPackage -AllUsers $appName
+        if ($app)
+        {
+            Write-Message "Uninstalling $appName"
+            Remove-AppxPackage -Package $app -AllUsers
+        }
+    }
+}
+Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UninstallBloatwareBlock))
 
 <#
 Write-Header "Installing applications via WinGet"
@@ -181,11 +190,6 @@ git config --global alias.sync "pull --rebase origin main"
 # copy /y "%~dp0\..\WindowsTerminal\settings.json" "%LocalAppData%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" >NUL
 
 Write-Header "Installing SlnGen"
-dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources
-
-# TODO: Need bootstrapping! Also, this probably wouldn't work?
-# init now to avoid the need to restart the console
-# Write-Header "Running init"
-# call "%~dp0\init.cmd"
+dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
 
 Write-Header "Done!"

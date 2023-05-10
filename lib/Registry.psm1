@@ -1,4 +1,5 @@
 Import-Module "$PSScriptRoot\Console.psm1"
+Import-Module "$PSScriptRoot\Elevation.psm1"
 
 function Set-RegistryValue()
 {
@@ -8,7 +9,8 @@ function Set-RegistryValue()
         [String] $Path,
         [String] $Name = $null,
         [String] $Data = "",
-        [Microsoft.Win32.RegistryValueKind] $Type = "String"
+        [Microsoft.Win32.RegistryValueKind] $Type = "String",
+        [switch] $Elevate
     )
 
     $existingValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Ignore
@@ -18,12 +20,25 @@ function Set-RegistryValue()
 
         if ($Name)
         {
-            New-Item -Path $Path -Name $Name -Force | Out-Null
-            New-ItemProperty -Path $Path -Name $Name -PropertyType $Type -Value $Data | Out-Null
+            $CreateBlock = {
+                New-Item -Path $Path -Name $Name -Force | Out-Null
+                New-ItemProperty -Path $Path -Name $Name -PropertyType $Type -Value $Data | Out-Null
+            }
         }
         else
         {
-            New-Item -Path $Path -Value $Data -Force | Out-Null
+            $CreateBlock = {
+                New-Item -Path $Path -Value $Data -Force | Out-Null
+            }
+        }
+
+        if ($Elevate)
+        {
+            Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CreateBlock))
+        }
+        else
+        {
+            & $CreateBlock
         }
 
         return $true
@@ -42,13 +57,27 @@ function Set-RegistryValue()
         if ($existingData -ne $Data)
         {
             Write-Debug "Setting registry [$Path] $Name=$Data (old data $existingData)"
+
             if ($Name)
             {
-                Set-ItemProperty -Path $Path -Name $Name -Value $Data
+                $UpdateBlock = {
+                    Set-ItemProperty -Path $Path -Name $Name -Value $Data
+                }
             }
             else
             {
-                New-Item -Path $Path -Value $Data -Force | Out-Null
+                $UpdateBlock = {
+                    New-Item -Path $Path -Value $Data -Force | Out-Null
+                }
+            }
+
+            if ($Elevate)
+            {
+                Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UpdateBlock))
+            }
+            else
+            {
+                & $UpdateBlock
             }
 
             return $true
