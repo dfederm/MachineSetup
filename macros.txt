@@ -5,3 +5,4 @@ sln=slngen $*
 ql=%CodeDir%\CloudBuild\target\distrib\debug\amd64\ClientTools\Client\QuickBuild.exe $*
 qb=quickbuild buddy -a -op $*
 q=quickbuild $*
+kill=pskill $*

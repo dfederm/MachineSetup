@@ -118,11 +118,11 @@ $UninstallBloatwareBlock = {
 }
 Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UninstallBloatwareBlock))
 
-<#
 Write-Header "Installing applications via WinGet"
 $InstallApps = @(
     "7zip.7zip"
     "Git.Git"
+    "REALiX.HWiNFO"
     "icsharpcode.ILSpy"
     "KirillOsenkov.MSBuildStructuredLogViewer"
     "Microsoft.DotNet.SDK.7"
@@ -140,6 +140,7 @@ $InstallApps = @(
     "OpenJS.NodeJS"
     "Regex Hero"
     "SourceGear.DiffMerge"
+    "Sysinternals Suite"
     "WinDirStat.WinDirStat"
 )
 if ($InstallCommsApps)
@@ -167,7 +168,6 @@ foreach ($appName in $InstallApps)
         Write-Error "$appName failed to install! winget exit code $LASTEXITCODE"
     }
 }
-#>
 
 # After installing apps, the Path will have changed
 Update-PathVariable
