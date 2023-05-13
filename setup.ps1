@@ -87,6 +87,12 @@ Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-artifacts-cred
 Write-Message "Force NuGet to use auth dialogs"
 Set-EnvironmentVariable -Name "NUGET_CREDENTIALPROVIDER_FORCE_CANSHOWDIALOG_TO" -Value "true"
 
+Write-Message "Opting out of Windows Telemetry"
+Set-RegistryValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Data 0 -Type DWord -Elevate > $null
+
+Write-Message "Opting out of VS Telemetry"
+Set-RegistryValue -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM" -Name "OptIn" -Data 0 -Type DWord -Elevate > $null
+
 Write-Message "Opting out of .NET Telemetry"
 Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
 
