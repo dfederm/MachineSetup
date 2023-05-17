@@ -192,6 +192,18 @@ foreach ($appName in $InstallApps)
 # After installing apps, the Path will have changed
 Update-PathVariable
 
+Write-Header "Installing WSL"
+wsl --list >NUL
+if ($LASTEXITCODE -eq 0)
+{
+    Write-Debug "WSL already installed"
+}
+else
+{
+    wsl --install
+    Write-Warning "WSL requires a reboot to finish installation. Please reboot before attempting to use it."
+}
+
 Write-Header "Setting git config and aliases"
 git config --global core.editor "`"$env:ProgramFiles\Notepad++\notepad++.exe`" -multiInst -notabbar -nosession -noPlugin"
 git config --global core.autocrlf true
