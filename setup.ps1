@@ -5,6 +5,7 @@ param (
 Import-Module "$PSScriptRoot\lib\Console.psm1"
 Import-Module "$PSScriptRoot\lib\Elevation.psm1"
 Import-Module "$PSScriptRoot\lib\Environment.psm1"
+Import-Module "$PSScriptRoot\lib\Firewall.psm1"
 Import-Module "$PSScriptRoot\lib\Registry.psm1"
 
 Write-Header "Gathering information"
@@ -17,6 +18,16 @@ if ($CodeDir)
 else
 {
     $CodeDir = Read-Host "Where is your code directory located?"
+}
+
+$BinDir = $env:BinDir;
+if ($BinDir)
+{
+    Write-Message "BinDir already set to $BinDir"
+}
+else
+{
+    $BinDir = Read-Host "Where is your bin directory located?"
 }
 
 Write-Host
@@ -32,23 +43,30 @@ if (-not $InstallCommsApps)
 
 Write-Header "Configuring registry and environment variables"
 
+Write-Message "Configuring CodeDir"
+
 if (-not (Test-Path $CodeDir))
 {
-    New-Item -Path $CodeDir -ItemType Directory
+    New-Item -Path $CodeDir -ItemType Directory > $null
 }
-
-Write-Message "Configuring CodeDir"
 
 Set-EnvironmentVariable -Name "CodeDir" -Value $CodeDir
 Set-EnvironmentVariable -Name "NUGET_PACKAGES" -Value "$CodeDir\.nuget"
 Set-EnvironmentVariable -Name "NUGET_HTTP_CACHE_PATH" -Value "$CodeDir\.nuget\.http"
 
-# TODO: Should be scripts dir. Need bootstrapping!
-# Add-PathVariable -Path "C:\Users\david\OneDrive\Code\Scripts"
+Write-Message "Configuring BinDir"
 
-# TODO: Should be scripts dir. Need bootstrapping!
-# Write-Message "Configuring cmd Autorun"
-# Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"C:\Users\david\OneDrive\Code\Scripts\init.cmd`"" -Type ExpandString
+if (-not (Test-Path $BinDir))
+{
+    New-Item -Path $BinDir -ItemType Directory > $null
+}
+
+Copy-Item -Path "$PSScriptRoot\bin\*" -Destination $BinDir -Recurse -Force
+Set-EnvironmentVariable -Name "BinDir" -Value $BinDir
+Add-PathVariable -Path $BinDir
+
+Write-Message "Configuring cmd Autorun"
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"$BinDir\init.cmd`"" -Type ExpandString > $null
 
 Write-Message "Showing file extensions in Explorer"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Data 0 -Type DWord > $null
@@ -72,11 +90,7 @@ Set-RegistryValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\AppMode
 
 Write-Message "Enable Remote Desktop"
 Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Data 0 -Type DWord -Elevate > $null
-# TODO: Figure out how to test this first before always elevating. Overall this script should be idempotent and not require elevation if no changes are needed.
-$EnableRemoteDesktopFirewallBlock = {
-    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-}
-Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($EnableRemoteDesktopFirewallBlock))
+Enable-FirewallRuleGroup -DisplayGroup "Remote Desktop"
 
 Write-Message "Enable Long Paths"
 Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord -Elevate > $null
@@ -97,7 +111,7 @@ Write-Message "Opting out of .NET Telemetry"
 Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
 
 Write-Message "Excluding CodeDir from Defender"
-# TODO: Figure out how to test this first before always elevating. Overall this script should be idempotent and not require elevation if no changes are needed.
+# Unfortunately only admins can view exclusions, so this can't avoid elevation.
 $DefenderExclusionBlock = {
     Add-MpPreference -ExclusionPath $CodeDir
 }
@@ -191,9 +205,8 @@ git config --global diff.colorMoved zebra
 git config --global alias.amend "commit --amend --date=now --no-edit"
 git config --global alias.sync "pull --rebase origin main"
 
-# TODO: Need bootstrapping!
-# Write-Header "Copying Terminal settings"
-# copy /y "%~dp0\..\WindowsTerminal\settings.json" "%LocalAppData%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" >NUL
+Write-Header "Copying Windows Terminal settings"
+Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
 Write-Header "Installing SlnGen"
 dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
