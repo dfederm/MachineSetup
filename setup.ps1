@@ -95,7 +95,7 @@ Enable-FirewallRuleGroup -DisplayGroup "Remote Desktop"
 Write-Message "Enable Long Paths"
 Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord -Elevate > $null
 
-Write-Message "Installing Azure Artifacts Credential Provider"
+Write-Message "Installing Azure Artifacts Credential Provider (NuGet)"
 Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | Out-Null
 
 Write-Message "Force NuGet to use auth dialogs"
@@ -216,6 +216,11 @@ git config --global merge.conflictstyle diff3
 git config --global diff.colorMoved zebra
 git config --global alias.amend "commit --amend --date=now --no-edit"
 git config --global alias.sync "pull --rebase origin main"
+
+Write-Debug "Enable WAM integration for Git (promptless auth)"
+# See: https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/windows-broker.md
+git config --global credential.msauthUseBroker true
+git config --global credential.msauthUseDefaultAccount true
 
 Write-Header "Copying Windows Terminal settings"
 Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
