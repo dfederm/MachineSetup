@@ -158,8 +158,8 @@ Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UninstallBloatwar
 Write-Header "Installing applications via WinGet"
 $InstallApps = @(
     "7zip.7zip"
+    "AntibodySoftware.WizTree"
     "Git.Git"
-    "REALiX.HWiNFO"
     "icsharpcode.ILSpy"
     "KirillOsenkov.MSBuildStructuredLogViewer"
     "Microsoft.DotNet.SDK.7"
@@ -175,10 +175,10 @@ $InstallApps = @(
     "Notepad++.Notepad++"
     "NuGet Package Explorer"
     "OpenJS.NodeJS"
+    "REALiX.HWiNFO"
     "Regex Hero"
     "SourceGear.DiffMerge"
     "Sysinternals Suite"
-    "WinDirStat.WinDirStat"
 )
 if ($InstallCommsApps)
 {
