@@ -127,6 +127,9 @@ Set-RegistryValue -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM"
 Write-Message "Opting out of .NET Telemetry"
 Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
 
+Write-Message "Suppressing .NET SDK Preview messages"
+Set-EnvironmentVariable -Name "SuppressNETCoreSdkPreviewMessage" -Value true
+
 Write-Message "Excluding CodeDir from Defender"
 # Unfortunately only admins can view exclusions, so this can't avoid elevation.
 $DefenderExclusionBlock = {
