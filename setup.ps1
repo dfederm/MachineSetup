@@ -96,6 +96,16 @@ if ($restartExplorer)
     Stop-Process -Name explorer -Force
 }
 
+Write-Message "Enabling Dark Mode"
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Data 0 -Type DWord > $null
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Data 0 -Type DWord > $null
+
+Write-Message "Removing search from task bar"
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Data 0 -Type DWord > $null
+
+Write-Message "Removing Task View button from task bar"
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Data 0 -Type DWord > $null
+
 Write-Message "Disabling Edge tabs showing in Alt+Tab"
 Set-RegistryValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MultiTaskingAltTabFilter" -Data 3 -Type DWord > $null
 
