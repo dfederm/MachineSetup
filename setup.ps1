@@ -192,6 +192,7 @@ $InstallApps = @(
     "Regex Hero"
     "SourceGear.DiffMerge"
     "Sysinternals Suite"
+    "VideoLAN.VLC"
 )
 if ($InstallCommsApps)
 {
