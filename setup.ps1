@@ -197,16 +197,14 @@ $InstallApps = @(
 )
 if ($InstallCommsApps)
 {
+    $InstallApps += @(
+        "Telegram.TelegramDesktop"
+    )
+
     if ($IsForWork)
     {
         $InstallApps += @(
             "Microsoft.Teams"
-        )
-    }
-    else
-    {
-        $InstallApps += @(
-            "Telegram.TelegramDesktop"
         )
     }
 }
