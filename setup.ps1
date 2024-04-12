@@ -198,7 +198,7 @@ $InstallApps = @(
 if ($InstallCommsApps)
 {
     $InstallApps += @(
-        "SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+        "Spotify Music"
         "Telegram.TelegramDesktop"
     )
 
