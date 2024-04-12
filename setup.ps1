@@ -171,6 +171,7 @@ Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UninstallBloatwar
 Write-Header "Installing applications via WinGet"
 $InstallApps = @(
     "7zip.7zip"
+    "AgileBits.1Password"
     "AntibodySoftware.WizTree"
     "Git.Git"
     "icsharpcode.ILSpy"
