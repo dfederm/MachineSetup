@@ -232,7 +232,7 @@ foreach ($appName in $InstallApps)
 Update-PathVariable
 
 Write-Header "Installing WSL"
-wsl --list >NUL
+wsl --list > $null
 if ($LASTEXITCODE -eq 0)
 {
     Write-Debug "WSL already installed"
