@@ -176,7 +176,7 @@ $InstallApps = @(
     "Git.Git"
     "icsharpcode.ILSpy"
     "KirillOsenkov.MSBuildStructuredLogViewer"
-    "Microsoft.DotNet.SDK.7"
+    "Microsoft.DotNet.SDK.8"
     "Microsoft.NuGet"
     "Microsoft.PowerShell"
     "Microsoft.PowerToys"
