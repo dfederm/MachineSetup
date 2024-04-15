@@ -278,6 +278,13 @@ if ($IsForWork)
 Write-Header "Copying Windows Terminal settings"
 Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
+Write-Header "Copying Notepad++ theme"
+$CopyNppThemeBlock = {
+    Copy-Item -Path "$BinDir\npp\VS2019-Dark.xml" -Destination "$env:ProgramFiles\Notepad++\themes\VS2019-Dark.xml"
+}
+Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CopyNppThemeBlock))
+
+
 Write-Header "Installing SlnGen"
 dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
 
