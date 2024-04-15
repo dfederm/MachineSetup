@@ -89,10 +89,20 @@ Write-Message "Showing hidden files and directories in Explorer"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Data 1 -Type DWord > $null
 
 Write-Message "Restore classic context menu"
-$restartExplorer = Set-RegistryValue -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+if (Set-RegistryValue -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32")
+{
+    $restartExplorer = $true
+}
+
+Write-Message "Disabling Widgets"
+if (Set-RegistryValue -Path "HKLM:\Software\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Data 0 -Type DWord -Elevate)
+{
+    $restartExplorer = $true
+}
+
 if ($restartExplorer)
 {
-    # Restart explorer to apply the change
+    Write-Message "Restarting explorer to apply the change"
     Stop-Process -Name explorer -Force
 }
 
@@ -155,6 +165,7 @@ $UninstallBloatwareBlock = {
         "Microsoft.GetHelp"
         "Microsoft.Getstarted"
         "Microsoft.MixedReality.Portal"
+        "MicrosoftWindows.Client.WebExperience" # Widgets
     )
     foreach ($appName in $BloatwareApps)
     {

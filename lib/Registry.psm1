@@ -21,7 +21,7 @@ function Set-RegistryValue()
         if ($Name)
         {
             $CreateBlock = {
-                New-Item -Path $Path -Name $Name -Force | Out-Null
+                New-Item -Path $Path -Force | Out-Null
                 New-ItemProperty -Path $Path -Name $Name -PropertyType $Type -Value $Data | Out-Null
             }
         }
