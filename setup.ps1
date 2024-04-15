@@ -100,12 +100,6 @@ if (Set-RegistryValue -Path "HKLM:\Software\Policies\Microsoft\Dsh" -Name "Allow
     $restartExplorer = $true
 }
 
-if ($restartExplorer)
-{
-    Write-Message "Restarting explorer to apply the change"
-    Stop-Process -Name explorer -Force
-}
-
 Write-Message "Enabling Dark Mode"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Data 0 -Type DWord > $null
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Data 0 -Type DWord > $null
@@ -114,7 +108,16 @@ Write-Message "Removing search from task bar"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Data 0 -Type DWord > $null
 
 Write-Message "Removing Task View button from task bar"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Data 0 -Type DWord > $null
+if (Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Data 0 -Type DWord)
+{
+    $restartExplorer = $true
+}
+
+Write-Message "Disabling showing task bar on all displays"
+if (Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MMTaskbarEnabled" -Data 0 -Type DWord)
+{
+    $restartExplorer = $true
+}
 
 Write-Message "Disabling Edge tabs showing in Alt+Tab"
 Set-RegistryValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MultiTaskingAltTabFilter" -Data 3 -Type DWord > $null
@@ -149,6 +152,12 @@ Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
 
 Write-Message "Suppressing .NET SDK Preview messages"
 Set-EnvironmentVariable -Name "SuppressNETCoreSdkPreviewMessage" -Value true
+
+if ($restartExplorer)
+{
+    Write-Message "Restarting explorer to apply changes"
+    Stop-Process -Name explorer -Force
+}
 
 Write-Message "Excluding CodeDir from Defender"
 # Unfortunately only admins can view exclusions, so this can't avoid elevation.
