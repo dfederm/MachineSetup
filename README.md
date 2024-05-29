@@ -6,6 +6,7 @@ This is my personal machine setup script. The script will configure some setting
 To run the scripts from the repo exactly as-is (recommended only for me, or if you've forked this repo and customized it yourself):
 
 ```ps1
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 iex "& { $(iwr https://raw.githubusercontent.com/dfederm/MachineSetup/main/bootstrap.ps1) }" | Out-Null
 ```
 
