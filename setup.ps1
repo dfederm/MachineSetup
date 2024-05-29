@@ -193,6 +193,7 @@ $InstallApps = @(
     "7zip.7zip"
     "AgileBits.1Password"
     "AntibodySoftware.WizTree"
+    "Brave.Brave"
     "Git.Git"
     "icsharpcode.ILSpy"
     "KirillOsenkov.MSBuildStructuredLogViewer"
