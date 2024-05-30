@@ -290,10 +290,9 @@ Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData
 
 Write-Header "Copying Notepad++ theme"
 $CopyNppThemeBlock = {
-    Copy-Item -Path "$BinDir\npp\VS2019-Dark.xml" -Destination "$env:ProgramFiles\Notepad++\themes\VS2019-Dark.xml"
+    Copy-Item -Path ""$BinDir\npp\VS2019-Dark.xml"" -Destination ""$env:ProgramFiles\Notepad++\themes\VS2019-Dark.xml""
 }
 Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CopyNppThemeBlock))
-
 
 Write-Header "Installing SlnGen"
 dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
