@@ -281,6 +281,7 @@ if ($IsForWork)
 {
     Write-Debug "Enable WAM integration for Git (promptless auth)"
     # See: https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/windows-broker.md
+    git config --global credential.azreposCredentialType oauth
     git config --global credential.msauthUseBroker true
     git config --global credential.msauthUseDefaultAccount true
 }
