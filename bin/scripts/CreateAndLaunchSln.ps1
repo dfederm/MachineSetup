@@ -26,6 +26,7 @@ if (-not $SlnFile)
     {
         Write-Host "Did not find a sln. Running slngen to generate sln..."
         & slngen --launch false >$null 2>&1
+        $SlnFile = Get-ChildItem -Filter "*.sln" -Name | Select-Object -First 1
     }
 }
 else
