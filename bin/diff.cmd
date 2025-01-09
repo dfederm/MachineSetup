@@ -1,2 +1,2 @@
 @ECHO OFF
-"%ProgramFiles%\SourceGear\Common\DiffMerge\sgdm.exe" %*
+start cmd /c ""%ProgramFiles%\SourceGear\Common\DiffMerge\sgdm.exe" %*"
