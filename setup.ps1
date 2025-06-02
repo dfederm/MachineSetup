@@ -107,6 +107,11 @@ Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\
 Write-Message "Removing search from task bar"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Data 0 -Type DWord > $null
 
+Write-Message "Disabling web results in search"
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Data 0 -Type DWord > $null
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "AllowSearchToUseLocation" -Data 0 -Type DWord > $null
+Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Data 0 -Type DWord > $null
+
 Write-Message "Removing Task View button from task bar"
 if (Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Data 0 -Type DWord)
 {
