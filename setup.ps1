@@ -76,8 +76,15 @@ if (-not (Test-Path $BinDir))
 }
 
 Copy-Item -Path "$PSScriptRoot\bin\*" -Destination $BinDir -Recurse -Force
+if ($IsForWork)
+{
+    Copy-Item -Path "$PSScriptRoot\work\bin\*" -Destination $BinDir -Recurse -Force
+}
+
 Set-EnvironmentVariable -Name "BinDir" -Value $BinDir
 Add-PathVariable -Path $BinDir
+
+return
 
 Write-Message "Configuring cmd Autorun"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"$BinDir\init.cmd`"" -Type ExpandString > $null

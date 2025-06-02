@@ -1,7 +1,1 @@
 ..=cd ..
-n="%ProgramFiles%\Notepad++\notepad++.exe" $*
-restore=msbuild /t:Restore /Interactive /MaxCPUCount /NodeReuse:False /p:RestoreUseStaticGraphEvaluation=true /ConsoleLoggerParameters:Verbosity=Minimal;Summary;ForceNoAlign $*
-ql=%CodeDir%\CloudBuild\target\distrib\debug\amd64\ClientTools\Client\QuickBuild.exe $*
-qb=quickbuild buddy -a -op $*
-q=quickbuild $*
-kill=pskill $*
