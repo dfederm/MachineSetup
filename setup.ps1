@@ -218,7 +218,7 @@ $InstallApps = @(
     "REALiX.HWiNFO"
     "Regex Hero"
     "SourceGear.DiffMerge"
-    "Sysinternals Suite"
+    "Microsoft.Sysinternals"
     "VideoLAN.VLC"
 )
 if ($InstallCommsApps)
