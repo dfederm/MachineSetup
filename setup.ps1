@@ -49,7 +49,7 @@ if (-not $PSBoundParameters.ContainsKey('InstallCommsApps'))
 {
     $InstallCommsAppsChoice = $Host.UI.PromptForChoice(
         "",
-        "Do you need communication apps, eg. Telegram, Teams?",
+        "Do you need communication apps, eg. Signal, Teams?",
         @("&Yes", "&No"),
         -1)
     $InstallCommsApps = $InstallCommsAppsChoice -eq 0
@@ -232,7 +232,7 @@ if ($InstallCommsApps)
 {
     $InstallApps += @(
         "Spotify.Spotify"
-        "Telegram.TelegramDesktop"
+        "OpenWhisperSystems.Signal"
     )
 
     if ($IsForWork)
