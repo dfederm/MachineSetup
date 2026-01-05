@@ -84,8 +84,6 @@ if ($IsForWork)
 Set-EnvironmentVariable -Name "BinDir" -Value $BinDir
 Add-PathVariable -Path $BinDir
 
-return
-
 Write-Message "Configuring cmd Autorun"
 Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"$BinDir\init.cmd`"" -Type ExpandString > $null
 
