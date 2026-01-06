@@ -305,6 +305,21 @@ $CopyNppThemeBlock = {
 }
 Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CopyNppThemeBlock))
 
+Write-Header "Adding VSCode context menu entries"
+$VsCodeExe = "$Env:LocalAppData\Programs\Microsoft VS Code\Code.exe"
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%1`"" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
+Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
+
 Write-Header "Installing SlnGen"
 dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
 

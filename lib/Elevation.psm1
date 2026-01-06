@@ -20,6 +20,20 @@ function Invoke-Elevated()
     {
         Write-Debug "Requesting elevation"
         $PowershellExe = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
-        Start-Process $PowershellExe -Verb RunAs -ArgumentList "-Command `"$ScriptBlock`""
+
+        $TempDir = [System.IO.Path]::GetTempPath()
+        $TempFileName = [System.IO.Path]::GetRandomFileName() + ".ps1"
+        $TempFile = Join-Path $TempDir $TempFileName
+
+        try
+        {
+            Set-Content -Path $TempFile -Value $ScriptBlock
+            Write-Host "$TempFile"
+            Start-Process $PowershellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait
+        }
+        finally
+        {
+            Remove-Item $TempFile -ErrorAction Ignore
+        }
     }
 }
