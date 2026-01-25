@@ -19,7 +19,7 @@ function Enable-FirewallRuleGroup()
         }
         else
         {
-            Write-Debug "$DisplayGroup Firewall rule not enabled: $($rdpFirewallRule.DisplayName)"
+            Write-Debug "$DisplayGroup Firewall rule not enabled: $($rule.DisplayName)"
             $rulesEnabled = $false
         }
     }

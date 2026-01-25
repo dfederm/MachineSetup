@@ -14,7 +14,7 @@ function Invoke-Elevated()
 
     if (Test-Elevated)
     {
-        & $ScriptBlock
+        Invoke-Expression $ScriptBlock
     }
     else
     {
