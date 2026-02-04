@@ -38,7 +38,6 @@ function Set-RegistryValue()
 
         if ($Elevate)
         {
-            Write-Host ($ExecutionContext.InvokeCommand.ExpandString($CreateBlock))
             Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CreateBlock))
         }
         else

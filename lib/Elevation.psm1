@@ -28,7 +28,6 @@ function Invoke-Elevated()
         try
         {
             Set-Content -Path $TempFile -Value $ScriptBlock
-            Write-Host "$TempFile"
             Start-Process $PowershellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait
         }
         finally
