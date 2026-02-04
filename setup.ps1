@@ -217,7 +217,6 @@ $InstallApps = @(
     "Microsoft.VisualStudio.Enterprise"
     "Microsoft.VisualStudio.Enterprise.Insiders"
     "Microsoft.WindowsTerminal"
-    "Notepad++.Notepad++"
     "NuGet Package Explorer"
     "OpenJS.NodeJS"
     "REALiX.HWiNFO"
@@ -275,7 +274,7 @@ else
 }
 
 Write-Header "Setting git config and aliases"
-git config --global core.editor "`"$env:ProgramFiles\Notepad++\notepad++.exe`" -multiInst -notabbar -nosession -noPlugin"
+git config --global core.editor "code --wait --new-window"
 git config --global core.autocrlf true
 git config --global core.fscache true
 git config --global core.longpaths true
@@ -298,12 +297,6 @@ if ($IsForWork)
 
 Write-Header "Copying Windows Terminal settings"
 Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-
-Write-Header "Copying Notepad++ theme"
-$CopyNppThemeBlock = {
-    Copy-Item -Path ""$BinDir\npp\VS2019-Dark.xml"" -Destination ""$env:ProgramFiles\Notepad++\themes\VS2019-Dark.xml""
-}
-Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CopyNppThemeBlock))
 
 Write-Header "Adding VSCode context menu entries"
 $VsCodeExe = "$Env:LocalAppData\Programs\Microsoft VS Code\Code.exe"
