@@ -20,10 +20,6 @@
         {
             "id": "Terminal.PasteFromClipboard",
             "keys": "ctrl+v"
-        },
-        {
-            "id": "Terminal.FindText",
-            "keys": "ctrl+f"
         }
     ],
     "newTabMenu": 
@@ -38,7 +34,7 @@
         "list": 
         [
             {
-                "commandline": "%comspec% /k \"%PROGRAMFILES%\\Microsoft Visual Studio\\2022\\Preview\\Common7\\Tools\\VsDevCmd.bat\"",
+                "commandline": "%comspec% /k \"%PROGRAMFILES%\\Microsoft Visual Studio\\18\\Insiders\\Common7\\Tools\\VsDevCmd.bat\"",
                 "font": 
                 {
                     "size": 10
