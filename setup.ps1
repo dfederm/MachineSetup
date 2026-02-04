@@ -217,12 +217,12 @@ $InstallApps = @(
     "Microsoft.VisualStudio.Enterprise"
     "Microsoft.VisualStudio.Enterprise.Insiders"
     "Microsoft.WindowsTerminal"
-    "NuGet Package Explorer"
+    "9WZDNCRDMDM3" # NuGet Package Explorer
     "OpenJS.NodeJS"
     "REALiX.HWiNFO"
-    "Regex Hero"
+    "9NDD8CVPBZB6" # Regex Hero
     "SourceGear.DiffMerge"
-    "Microsoft.Sysinternals"
+    "Microsoft.Sysinternals.Suite" 
     "VideoLAN.VLC"
 )
 if ($InstallCommsApps)
@@ -242,7 +242,7 @@ if ($InstallCommsApps)
 foreach ($appName in $InstallApps)
 {
     Write-Message "Installing $appName"
-    winget install $appName --silent --no-upgrade --accept-package-agreements --accept-source-agreements
+    winget install $appName --exact --silent --no-upgrade --accept-package-agreements --accept-source-agreements
     if ($LASTEXITCODE -eq 0)
     {
         Write-Message "$appName installed successfully"
