@@ -1,6 +1,32 @@
 Import-Module "$PSScriptRoot\Console.psm1"
 Import-Module "$PSScriptRoot\Elevation.psm1"
 
+function Test-RegistryValue()
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String] $Path,
+        [String] $Name = $null,
+        [String] $Data = ""
+    )
+
+    $existingValue = Get-ItemProperty -LiteralPath $Path -Name $Name -ErrorAction Ignore
+    if ($null -eq $existingValue)
+    {
+        return $false
+    }
+
+    if ($Name)
+    {
+        return $existingValue.$Name -eq $Data
+    }
+    else
+    {
+        return $existingValue."(default)" -eq $Data
+    }
+}
+
 function Set-RegistryValue()
 {
     [CmdletBinding()]

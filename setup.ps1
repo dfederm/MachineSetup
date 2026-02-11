@@ -1,38 +1,22 @@
 param (
     [switch] $IsForWork,
-    [switch] $InstallCommsApps
+    [switch] $InstallCommsApps,
+    [string[]] $Components,
+    [switch] $DetectOnly
 )
 
-Import-Module "$PSScriptRoot\lib\Console.psm1"
-Import-Module "$PSScriptRoot\lib\Elevation.psm1"
-Import-Module "$PSScriptRoot\lib\Environment.psm1"
-Import-Module "$PSScriptRoot\lib\Firewall.psm1"
-Import-Module "$PSScriptRoot\lib\Registry.psm1"
+$ErrorActionPreference = "Stop"
 
-Write-Header "Gathering information"
+# Import modules
+Import-Module "$PSScriptRoot\lib\Console.psm1" -Force
+Import-Module "$PSScriptRoot\lib\Elevation.psm1" -Force
+Import-Module "$PSScriptRoot\lib\Environment.psm1" -Force
+Import-Module "$PSScriptRoot\lib\Firewall.psm1" -Force
+Import-Module "$PSScriptRoot\lib\Registry.psm1" -Force
+Import-Module "$PSScriptRoot\lib\WinGet.psm1" -Force
+Import-Module "$PSScriptRoot\lib\Component.psm1" -Force -DisableNameChecking
 
-$CodeDir = $env:CodeDir;
-if ($CodeDir)
-{
-    Write-Message "CodeDir already set to $CodeDir"
-}
-else
-{
-    $CodeDir = Read-Host "Where is your code directory located?"
-}
-
-$BinDir = $env:BinDir;
-if ($BinDir)
-{
-    Write-Message "BinDir already set to $BinDir"
-}
-else
-{
-    $BinDir = Read-Host "Where is your bin directory located?"
-}
-
-Write-Host
-
+# Gather preferences
 if (-not $PSBoundParameters.ContainsKey('IsForWork'))
 {
     $IsForWorkChoice = $Host.UI.PromptForChoice(
@@ -42,8 +26,6 @@ if (-not $PSBoundParameters.ContainsKey('IsForWork'))
         -1)
     $IsForWork = $IsForWorkChoice -eq 1
 }
-
-Write-Host
 
 if (-not $PSBoundParameters.ContainsKey('InstallCommsApps'))
 {
@@ -55,265 +37,90 @@ if (-not $PSBoundParameters.ContainsKey('InstallCommsApps'))
     $InstallCommsApps = $InstallCommsAppsChoice -eq 0
 }
 
-Write-Header "Configuring registry and environment variables"
+Write-Header "Machine Setup"
 
-Write-Message "Configuring CodeDir"
+# Load all components and filter by scope
+Write-Message "Loading components..."
+$componentsDir = Join-Path $PSScriptRoot "components"
+$allComponents = Get-AllComponents $componentsDir
 
-if (-not (Test-Path $CodeDir))
+# Filter to specific components if requested
+if ($Components)
 {
-    New-Item -Path $CodeDir -ItemType Directory > $null
+    $allComponents = $allComponents | Where-Object { $_.Id -in $Components }
+    $missing = $Components | Where-Object { $_ -notin $allComponents.Id }
+    if ($missing) { Write-Warning "Unknown component(s): $($missing -join ', ')" }
 }
 
-Set-EnvironmentVariable -Name "CodeDir" -Value $CodeDir
-Set-EnvironmentVariable -Name "NUGET_PACKAGES" -Value "$CodeDir\.nuget"
-Set-EnvironmentVariable -Name "NUGET_HTTP_CACHE_PATH" -Value "$CodeDir\.nuget\.http"
-
-Write-Message "Configuring BinDir"
-
-if (-not (Test-Path $BinDir))
-{
-    New-Item -Path $BinDir -ItemType Directory > $null
-}
-
-Copy-Item -Path "$PSScriptRoot\bin\*" -Destination $BinDir -Recurse -Force
-if ($IsForWork)
-{
-    Copy-Item -Path "$PSScriptRoot\work\bin\*" -Destination $BinDir -Recurse -Force
-}
-
-Set-EnvironmentVariable -Name "BinDir" -Value $BinDir
-Add-PathVariable -Path $BinDir
-
-Write-Message "Configuring cmd Autorun"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Command Processor" -Name "Autorun" -Data "`"$BinDir\init.cmd`"" -Type ExpandString > $null
-
-Write-Message "Showing file extensions in Explorer"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Data 0 -Type DWord > $null
-
-Write-Message "Showing hidden files and directories in Explorer"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Data 1 -Type DWord > $null
-
-Write-Message "Restore classic context menu"
-if (Set-RegistryValue -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32")
-{
-    $restartExplorer = $true
-}
-
-Write-Message "Disabling Widgets"
-if (Set-RegistryValue -Path "HKLM:\Software\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Data 0 -Type DWord -Elevate)
-{
-    $restartExplorer = $true
-}
-
-Write-Message "Enabling Dark Mode"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Data 0 -Type DWord > $null
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Data 0 -Type DWord > $null
-
-Write-Message "Removing search from task bar"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Data 0 -Type DWord > $null
-
-Write-Message "Disabling web results in search"
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Data 0 -Type DWord > $null
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "AllowSearchToUseLocation" -Data 0 -Type DWord > $null
-Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Data 0 -Type DWord > $null
-
-Write-Message "Removing Task View button from task bar"
-if (Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Data 0 -Type DWord)
-{
-    $restartExplorer = $true
-}
-
-Write-Message "Disabling showing task bar on all displays"
-if (Set-RegistryValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MMTaskbarEnabled" -Data 0 -Type DWord)
-{
-    $restartExplorer = $true
-}
-
-Write-Message "Disabling Edge tabs showing in Alt+Tab"
-Set-RegistryValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MultiTaskingAltTabFilter" -Data 3 -Type DWord > $null
-
-Write-Message "Enable Developer Mode"
-Set-RegistryValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Data 1 -Type DWord -Elevate > $null
-
-Write-Message "Enable Remote Desktop"
-Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Data 0 -Type DWord -Elevate > $null
-Enable-FirewallRuleGroup -DisplayGroup "Remote Desktop"
-
-Write-Message "Enable Long Paths"
-Set-RegistryValue -Path "HKLM:\System\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Data 1 -Type DWord -Elevate > $null
-
-if ($IsForWork)
-{
-    Write-Message "Installing Azure Artifacts Credential Provider (NuGet)"
-    Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | Out-Null
-
-    Write-Message "Force NuGet to use auth dialogs"
-    Set-EnvironmentVariable -Name "NUGET_CREDENTIALPROVIDER_FORCE_CANSHOWDIALOG_TO" -Value "true"
-}
-
-Write-Message "Opting out of Windows Telemetry"
-Set-RegistryValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Data 0 -Type DWord -Elevate > $null
-
-Write-Message "Opting out of VS Telemetry"
-Set-RegistryValue -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM" -Name "OptIn" -Data 0 -Type DWord -Elevate > $null
-
-Write-Message "Opting out of .NET Telemetry"
-Set-EnvironmentVariable -Name "DOTNET_CLI_TELEMETRY_OPTOUT" -Value 1
-
-Write-Message "Suppressing .NET SDK Preview messages"
-Set-EnvironmentVariable -Name "SuppressNETCoreSdkPreviewMessage" -Value true
-
-if ($restartExplorer)
-{
-    Write-Message "Restarting explorer to apply changes"
-    Stop-Process -Name explorer -Force
-}
-
-Write-Message "Excluding CodeDir from Defender"
-# Unfortunately only admins can view exclusions, so this can't avoid elevation.
-$DefenderExclusionBlock = {
-    Add-MpPreference -ExclusionPath $CodeDir
-}
-Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($DefenderExclusionBlock))
-
-Write-Header "Uninstalling Bloatware Appx"
-$UninstallBloatwareBlock = {
-    $BloatwareApps = @(
-        "Microsoft.549981C3F5F10" # Cortana
-        "Microsoft.BingWeather"
-        "Microsoft.GetHelp"
-        "Microsoft.Getstarted"
-        "Microsoft.MixedReality.Portal"
-        "MicrosoftWindows.Client.WebExperience" # Widgets
-    )
-    foreach ($appName in $BloatwareApps)
-    {
-        $app = Get-AppxPackage -AllUsers $appName
-        if ($app)
-        {
-            Write-Message "Uninstalling $appName"
-            Remove-AppxPackage -Package $app -AllUsers
-        }
+$activeComponents = $allComponents | Where-Object {
+    $scope = if ($_.Scope) { $_.Scope } else { "common" }
+    switch ($scope) {
+        "common"    { $true }
+        "work"      { $IsForWork }
+        "comms"     { $InstallCommsApps }
+        "work-comms" { $IsForWork -and $InstallCommsApps }
+        default     { $true }
     }
 }
-Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UninstallBloatwareBlock))
 
-Write-Header "Installing applications via WinGet"
-$InstallApps = @(
-    "7zip.7zip"
-    "AgileBits.1Password"
-    "AntibodySoftware.WizTree"
-    "Brave.Brave"
-    "Git.Git"
-    "icsharpcode.ILSpy"
-    "KirillOsenkov.MSBuildStructuredLogViewer"
-    "Microsoft.DotNet.SDK.10"
-    "Microsoft.NuGet"
-    "Microsoft.PowerShell"
-    "Microsoft.PowerToys"
-    "Microsoft.RemoteDesktopClient"
-    "Microsoft.SQLServerManagementStudio"
-    "Microsoft.VisualStudioCode"
-    "Microsoft.VisualStudio.Enterprise"
-    "Microsoft.VisualStudio.Enterprise.Insiders"
-    "Microsoft.WindowsTerminal"
-    "9WZDNCRDMDM3" # NuGet Package Explorer
-    "OpenJS.NodeJS"
-    "REALiX.HWiNFO"
-    "9NDD8CVPBZB6" # Regex Hero
-    "SourceGear.DiffMerge"
-    "Microsoft.Sysinternals.Suite" 
-    "VideoLAN.VLC"
-)
-if ($InstallCommsApps)
-{
-    $InstallApps += @(
-        "Spotify.Spotify"
-        "OpenWhisperSystems.Signal"
-    )
+# Sort by dependencies
+$activeComponents = Sort-ComponentsByDependency $activeComponents
 
-    if ($IsForWork)
-    {
-        $InstallApps += @(
-            "Microsoft.Teams"
-        )
-    }
-}
-foreach ($appName in $InstallApps)
+# Detect current state
+Write-Message "Detecting current state..."
+$toInstall = @()
+$alreadyInstalled = @()
+foreach ($component in $activeComponents)
 {
-    Write-Message "Installing $appName"
-    winget install $appName --exact --silent --no-upgrade --accept-package-agreements --accept-source-agreements
-    if ($LASTEXITCODE -eq 0)
+    $detected = Invoke-ComponentDetect $component
+    if ($detected -eq $true)
     {
-        Write-Message "$appName installed successfully"
-    }
-    # 0x8A150061 (APPINSTALLER_CLI_ERROR_PACKAGE_ALREADY_INSTALLED)
-    elseif ($LASTEXITCODE -eq -1978335135)
-    {
-        Write-Message "$appName already installed"
+        $alreadyInstalled += $component
+        Write-Debug "$($component.Name) - already installed"
     }
     else
     {
-        Write-Error "$appName failed to install! winget exit code $LASTEXITCODE"
+        $toInstall += $component
+        Write-Debug "$($component.Name) - needs install"
     }
 }
 
-# After installing apps, the Path will have changed
-Update-PathVariable
-
-Write-Header "Installing WSL"
-wsl --list > $null
-if ($LASTEXITCODE -eq 0)
+if ($alreadyInstalled.Count -gt 0)
 {
-    Write-Debug "WSL already installed"
-}
-else
-{
-    wsl --install
-    Write-Warning "WSL requires a reboot to finish installation. Please reboot before attempting to use it."
+    Write-Message "$($alreadyInstalled.Count) component(s) already installed"
 }
 
-Write-Header "Setting git config and aliases"
-git config --global core.editor "code --wait --new-window"
-git config --global core.autocrlf true
-git config --global core.fscache true
-git config --global core.longpaths true
-git config --global fetch.prune true
-git config --global pull.rebase true
-git config --global push.default current
-git config --global merge.conflictstyle diff3
-git config --global diff.colorMoved zebra
-git config --global alias.amend "commit --amend --date=now --no-edit"
-git config --global alias.sync "pull --rebase origin main"
-
-if ($IsForWork)
+if ($toInstall.Count -eq 0)
 {
-    Write-Debug "Enable WAM integration for Git (promptless auth)"
-    # See: https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/windows-broker.md
-    git config --global credential.azreposCredentialType oauth
-    git config --global credential.msauthUseBroker true
-    git config --global credential.msauthUseDefaultAccount true
+    Write-Header "Everything is already set up!"
+    return
 }
 
-Write-Header "Copying Windows Terminal settings"
-Copy-Item -Path "$BinDir\terminal\settings.json" -Destination "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+if ($DetectOnly)
+{
+    Write-Header "$($toInstall.Count) component(s) need install:"
+    foreach ($component in $toInstall)
+    {
+        Write-Message $component.Name
+    }
+    return
+}
 
-Write-Header "Adding VSCode context menu entries"
-$VsCodeExe = "$Env:LocalAppData\Programs\Microsoft VS Code\Code.exe"
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%1`"" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
-Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\Drive\shell\VSCode\command" -Data "`"$VsCodeExe`" `"%V`"" -Elevate > $null
+# Install components
+Write-Header "Installing $($toInstall.Count) component(s)..."
+$succeeded = 0
+$failed = 0
 
-Write-Header "Installing SlnGen"
-dotnet tool install --global Microsoft.VisualStudio.SlnGen.Tool --add-source https://api.nuget.org/v3/index.json --ignore-failed-sources > $null
+foreach ($component in $toInstall)
+{
+    $result = Invoke-ComponentInstall $component
+    if ($result) { $succeeded++ } else { $failed++ }
+}
 
-Write-Header "Done!"
+# Summary
+Write-Header "Setup Complete"
+Write-Success "$succeeded component(s) installed successfully"
+if ($failed -gt 0)
+{
+    Write-Error "$failed component(s) failed"
+}

@@ -14,7 +14,7 @@ function Invoke-Elevated()
 
     if (Test-Elevated)
     {
-        Invoke-Expression $ScriptBlock
+        return Invoke-Expression $ScriptBlock
     }
     else
     {
@@ -27,8 +27,13 @@ function Invoke-Elevated()
 
         try
         {
-            Set-Content -Path $TempFile -Value $ScriptBlock
-            Start-Process $PowershellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait
+            $wrapper = @"
+`$result = & { $ScriptBlock }
+if (`$result) { exit 0 } else { exit 1 }
+"@
+            Set-Content -Path $TempFile -Value $wrapper
+            $proc = Start-Process $PowershellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait -PassThru
+            return $proc.ExitCode -eq 0
         }
         finally
         {

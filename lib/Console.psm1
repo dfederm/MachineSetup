@@ -33,6 +33,30 @@ function Write-Debug()
     Write-Host -ForegroundColor DarkGray $Message
 }
 
+function Write-Success()
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Position = 0, Mandatory)]
+        [String] $Message
+    )
+
+    Write-Host '  ' -NoNewLine
+    Write-Host -ForegroundColor Green $Message
+}
+
+function Write-Warning()
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Position = 0, Mandatory)]
+        [String] $Message
+    )
+
+    Write-Host '  ' -NoNewLine
+    Write-Host -ForegroundColor Yellow $Message
+}
+
 function Write-Error()
 {
     [CmdletBinding()]
