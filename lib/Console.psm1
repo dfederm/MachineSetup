@@ -6,7 +6,9 @@ function Write-Header()
         [String] $Message
     )
 
+    Write-Host ""
     Write-Host -ForegroundColor Cyan $Message
+    Write-Host -ForegroundColor DarkGray ("─" * $Message.Length)
 }
 
 function Write-Message()
@@ -17,8 +19,7 @@ function Write-Message()
         [String] $Message
     )
 
-    Write-Host '  ' -NoNewLine
-    Write-Host -ForegroundColor Gray $Message
+    Write-Host "  $Message" -ForegroundColor Gray
 }
 
 function Write-Debug()
@@ -29,8 +30,7 @@ function Write-Debug()
         [String] $Message
     )
 
-    Write-Host '    ' -NoNewLine
-    Write-Host -ForegroundColor DarkGray $Message
+    Write-Host "    $Message" -ForegroundColor DarkGray
 }
 
 function Write-Success()
@@ -41,8 +41,8 @@ function Write-Success()
         [String] $Message
     )
 
-    Write-Host '  ' -NoNewLine
-    Write-Host -ForegroundColor Green $Message
+    Write-Host "  ✓ " -ForegroundColor Green -NoNewLine
+    Write-Host $Message -ForegroundColor Green
 }
 
 function Write-Warning()
@@ -53,8 +53,8 @@ function Write-Warning()
         [String] $Message
     )
 
-    Write-Host '  ' -NoNewLine
-    Write-Host -ForegroundColor Yellow $Message
+    Write-Host "  ⚠ " -ForegroundColor Yellow -NoNewLine
+    Write-Host $Message -ForegroundColor Yellow
 }
 
 function Write-Error()
@@ -65,6 +65,6 @@ function Write-Error()
         [String] $Message
     )
 
-    Write-Host '  ' -NoNewLine
-    Write-Host -BackgroundColor Red $Message
+    Write-Host "  ✗ " -ForegroundColor Red -NoNewLine
+    Write-Host $Message -ForegroundColor Red
 }

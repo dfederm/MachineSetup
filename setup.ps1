@@ -76,12 +76,14 @@ foreach ($component in $activeComponents)
     if ($detected -eq $true)
     {
         $alreadyInstalled += $component
-        Write-Debug "$($component.Name) - already installed"
+        Write-Host "    ✓ " -ForegroundColor DarkGreen -NoNewLine
+        Write-Host $component.Name -ForegroundColor DarkGray
     }
     else
     {
         $toInstall += $component
-        Write-Debug "$($component.Name) - needs install"
+        Write-Host "    ○ " -ForegroundColor DarkYellow -NoNewLine
+        Write-Host $component.Name -ForegroundColor Gray
     }
 }
 
