@@ -1,9 +1,12 @@
 $bloatwareApps = @(
     "Microsoft.549981C3F5F10" # Cortana
+    "Microsoft.BingNews"
     "Microsoft.BingWeather"
     "Microsoft.GetHelp"
     "Microsoft.Getstarted"
+    "Microsoft.MicrosoftSolitaireCollection"
     "Microsoft.MixedReality.Portal"
+    "MicrosoftTeams" # Teams Personal only (not Work/School)
     "MicrosoftWindows.Client.WebExperience" # Widgets
 )
 
