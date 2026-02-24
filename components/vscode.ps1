@@ -9,7 +9,13 @@
     Install     = {
         if (-not (Install-WinGetPackage "Microsoft.VisualStudioCode")) { throw "Failed to install Microsoft.VisualStudioCode" }
 
-        $VsCodeExe = "$Env:LocalAppData\Programs\Microsoft VS Code\Code.exe"
+        # VS Code may be installed per-user or per-machine (eg via winget --scope machine)
+        $VsCodeExe = @(
+            "$Env:LocalAppData\Programs\Microsoft VS Code\Code.exe",
+            "$Env:ProgramFiles\Microsoft VS Code\Code.exe"
+        ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+        if (-not $VsCodeExe) { throw "Could not find Code.exe" }
 
         Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Data "Open w&ith Code" -Elevate > $null
         Set-RegistryValue -Path "Registry::HKEY_CLASSES_ROOT\*\shell\VSCode" -Name "Icon" -Data $VsCodeExe -Elevate > $null
