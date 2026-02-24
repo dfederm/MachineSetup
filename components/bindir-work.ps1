@@ -11,15 +11,7 @@ $workBinDir = Join-Path $repoRoot "work\bin"
         $binDir = [Environment]::GetEnvironmentVariable("BinDir", "User")
         if (-not $binDir) { return $false }
         if (-not (Test-Path $workBinDir)) { return $true }
-        $workFiles = Get-ChildItem -Path $workBinDir -Recurse -File
-        foreach ($file in $workFiles)
-        {
-            $relativePath = $file.FullName.Substring($workBinDir.Length)
-            $targetPath = Join-Path $binDir $relativePath
-            if (-not (Test-Path $targetPath)) { return $false }
-            if ((Get-Content $file.FullName -Raw) -ne (Get-Content $targetPath -Raw)) { return $false }
-        }
-        return $true
+        return Test-FileDeployment @(@{ Source = $workBinDir; Target = $binDir })
     }.GetNewClosure()
     Install     = {
         $binDir = $env:BinDir
@@ -30,6 +22,6 @@ $workBinDir = Join-Path $repoRoot "work\bin"
 
         if (-not (Test-Path $workBinDir)) { return }
 
-        Copy-Item -Path "$workBinDir\*" -Destination $binDir -Recurse -Force
+        Install-FileDeployment @(@{ Source = $workBinDir; Target = $binDir })
     }.GetNewClosure()
 }

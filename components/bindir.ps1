@@ -15,15 +15,7 @@ $repoBinDir = Join-Path $repoRoot "bin"
         $onPath = ($path -split ';' | Where-Object { $_ -Match $regex }).Count -gt 0
         if (-not $onPath) { return $false }
         # Check all repo bin files are deployed with matching content
-        $sourceFiles = Get-ChildItem -Path $repoBinDir -Recurse -File
-        foreach ($file in $sourceFiles)
-        {
-            $relativePath = $file.FullName.Substring($repoBinDir.Length)
-            $targetPath = Join-Path $binDir $relativePath
-            if (-not (Test-Path $targetPath)) { return $false }
-            if ((Get-Content $file.FullName -Raw) -ne (Get-Content $targetPath -Raw)) { return $false }
-        }
-        return $true
+        return Test-FileDeployment @(@{ Source = $repoBinDir; Target = $binDir })
     }.GetNewClosure()
     Install     = {
         $binDir = $env:BinDir
@@ -37,7 +29,7 @@ $repoBinDir = Join-Path $repoRoot "bin"
             New-Item -Path $binDir -ItemType Directory > $null
         }
 
-        Copy-Item -Path "$repoBinDir\*" -Destination $binDir -Recurse -Force
+        Install-FileDeployment @(@{ Source = $repoBinDir; Target = $binDir })
 
         Set-EnvironmentVariable -Name "BinDir" -Value $binDir
         Add-PathVariable -Path $binDir

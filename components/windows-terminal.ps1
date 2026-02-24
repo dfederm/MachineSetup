@@ -19,10 +19,7 @@ $getTargetDir = {
         $targetDir = & $getTargetDir
         if (-not $targetDir) { return $false }
 
-        $targetFile = Join-Path $targetDir "settings.json"
-        if (-not (Test-Path $targetFile)) { return $false }
-
-        return (Get-Content $sourceFile -Raw) -eq (Get-Content $targetFile -Raw)
+        return Test-FileDeployment @(@{ Source = $sourceFile; Target = (Join-Path $targetDir "settings.json") })
     }.GetNewClosure()
     Install     = {
         if (-not (Install-WinGetPackage "Microsoft.WindowsTerminal")) { throw "Failed to install Microsoft.WindowsTerminal" }
@@ -34,6 +31,6 @@ $getTargetDir = {
             return
         }
 
-        Copy-Item -Path $sourceFile -Destination "$targetDir\settings.json" -Force
+        Install-FileDeployment @(@{ Source = $sourceFile; Target = (Join-Path $targetDir "settings.json") })
     }.GetNewClosure()
 }
