@@ -47,6 +47,7 @@ $allComponents = Get-AllComponents $componentsDir
 # Filter to specific components if requested
 if ($Components)
 {
+    $Components = $Components | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ }
     $allComponents = $allComponents | Where-Object { $_.Id -in $Components }
     $missing = $Components | Where-Object { $_ -notin $allComponents.Id }
     if ($missing) { Write-Warning "Unknown component(s): $($missing -join ', ')" }
