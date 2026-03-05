@@ -1,2 +1,2 @@
 @echo off
-copilot --allow-all
+copilot --allow-all %*
