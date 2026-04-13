@@ -1,1 +1,1 @@
-@pwsh.exe -NoLogo -NoProfile -Command "& '%LOCALAPPDATA%\PowerShellEditorServices\PowerShellEditorServices\Start-EditorServices.ps1' -Stdio"
+@pwsh.exe -NoLogo -NoProfile -Command "& '%LOCALAPPDATA%\PowerShellEditorServices\PowerShellEditorServices\Start-EditorServices.ps1' -Stdio -SessionDetailsPath '%TEMP%\PowerShellEditorServices.json'"
