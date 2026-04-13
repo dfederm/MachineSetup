@@ -16,6 +16,50 @@
         ".js": "javascript",
         ".jsx": "javascriptreact"
       }
+    },
+    "json": {
+      "command": "vscode-json-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": {
+        ".json": "json",
+        ".jsonc": "jsonc"
+      }
+    },
+    "yaml": {
+      "command": "yaml-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": {
+        ".yml": "yaml",
+        ".yaml": "yaml"
+      }
+    },
+    "powershell": {
+      "command": "powershell-es",
+      "args": [],
+      "fileExtensions": {
+        ".ps1": "powershell",
+        ".psm1": "powershell",
+        ".psd1": "powershell"
+      }
+    },
+    "xml": {
+      "command": "lemminx",
+      "args": [],
+      "fileExtensions": {
+        ".xml": "xml",
+        ".xsd": "xml",
+        ".xsl": "xml",
+        ".xslt": "xml",
+        ".csproj": "xml",
+        ".vbproj": "xml",
+        ".fsproj": "xml",
+        ".props": "xml",
+        ".targets": "xml",
+        ".nuspec": "xml",
+        ".resx": "xml",
+        ".ruleset": "xml",
+        ".config": "xml"
+      }
     }
   }
 }
