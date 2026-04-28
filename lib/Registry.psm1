@@ -49,22 +49,22 @@ function Set-RegistryValue()
             $CreateBlock = {
                 if (-Not (Test-Path -LiteralPath $Path))
                 {
-                    New-Item -Path "$Path" -Force | Out-Null
+                    New-Item -Path $Path -Force | Out-Null
                 }
 
-                New-ItemProperty -LiteralPath "$Path" -Name "$Name" -PropertyType $Type -Value "$Data" | Out-Null
+                New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType $Type -Value $Data -Force | Out-Null
             }
         }
         else
         {
             $CreateBlock = {
-                New-Item -Path "$Path" -Value "$Data" -Force | Out-Null
+                New-Item -Path $Path -Value $Data -Force | Out-Null
             }
         }
 
         if ($Elevate)
         {
-            Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($CreateBlock))
+            Invoke-Elevated -ScriptBlock $CreateBlock -Variables @{ Path = $Path; Name = $Name; Data = $Data; Type = $Type }
         }
         else
         {
@@ -91,19 +91,19 @@ function Set-RegistryValue()
             if ($Name)
             {
                 $UpdateBlock = {
-                    Set-ItemProperty -LiteralPath "$Path" -Name "$Name" -Value "$Data"
+                    Set-ItemProperty -LiteralPath $Path -Name $Name -Value $Data
                 }
             }
             else
             {
                 $UpdateBlock = {
-                    New-Item -Path "$Path" -Value "$Data" -Force | Out-Null
+                    New-Item -Path $Path -Value $Data -Force | Out-Null
                 }
             }
 
             if ($Elevate)
             {
-                Invoke-Elevated ($ExecutionContext.InvokeCommand.ExpandString($UpdateBlock))
+                Invoke-Elevated -ScriptBlock $UpdateBlock -Variables @{ Path = $Path; Name = $Name; Data = $Data; Type = $Type }
             }
             else
             {
