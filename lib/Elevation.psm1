@@ -27,12 +27,12 @@ function Invoke-Elevated()
     else
     {
         Write-Debug "Requesting elevation"
-        $PowershellExe = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        $PowerShellExe = Join-Path $PSHOME "pwsh.exe"
 
         $TempDir = [System.IO.Path]::GetTempPath()
         $TempFileName = [System.IO.Path]::GetRandomFileName() + ".ps1"
         $TempFile = Join-Path $TempDir $TempFileName
-        $VarsFile = if ($Variables) { "$TempFile.vars.xml" } else { $null }
+        $VarsFile = $Variables ? "$TempFile.vars.xml" : $null
 
         try
         {
@@ -59,7 +59,7 @@ $varsImport
 if (`$result) { exit 0 } else { exit 1 }
 "@
             Set-Content -Path $TempFile -Value $wrapper
-            $proc = Start-Process $PowershellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait -PassThru
+            $proc = Start-Process $PowerShellExe -Verb RunAs -ArgumentList "-NoProfile -File `"$TempFile`"" -Wait -PassThru
             return $proc.ExitCode -eq 0
         }
         finally

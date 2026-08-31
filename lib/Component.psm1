@@ -157,7 +157,7 @@ function Get-AllComponents()
             $component = & $file.FullName
             $component["Id"] = $componentId
             $component["FilePath"] = $file.FullName
-            if (-not $component.ContainsKey("DependsOn")) { $component["DependsOn"] = @() }
+            $component["DependsOn"] ??= @()
             $components += $component
         }
         catch

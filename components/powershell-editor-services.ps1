@@ -2,7 +2,7 @@
     Name        = "PowerShell Editor Services"
     Description = "Install PowerShell Editor Services language server for LSP support"
     Category    = "Dev"
-    DependsOn   = @("powershell", "bindir")
+    DependsOn   = @("bindir")
     Detect      = {
         return Test-Path "$env:LOCALAPPDATA\PowerShellEditorServices\PowerShellEditorServices\Start-EditorServices.ps1"
     }

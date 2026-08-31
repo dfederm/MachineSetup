@@ -1,3 +1,5 @@
+#requires -Version 7.0
+
 param (
     [switch] $IsForWork,
     [switch] $InstallCommsApps,
@@ -54,7 +56,7 @@ if ($Components)
 }
 
 $activeComponents = $allComponents | Where-Object {
-    $scope = if ($_.Scope) { $_.Scope } else { "common" }
+    $scope = $_.Scope ?? "common"
     switch ($scope) {
         "common"    { $true }
         "work"      { $IsForWork }
@@ -126,4 +128,5 @@ Write-Success "$succeeded component(s) installed successfully"
 if ($failed -gt 0)
 {
     Write-Error "$failed component(s) failed"
+    throw "Machine setup failed."
 }
