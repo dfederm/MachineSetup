@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 7.4
 
 param (
     [switch] $IsForWork,

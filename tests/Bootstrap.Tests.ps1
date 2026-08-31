@@ -21,20 +21,37 @@ function Get-BootstrapExceptionMessage
     }
 }
 
-Describe "PowerShell 7 discovery" {
-    It "returns the first candidate that launches PowerShell 7" {
+Describe "PowerShell 7.4 executable validation" {
+    It "rejects an older PowerShell 7 runtime" {
+        $candidate = Join-Path $TestDrive "pwsh-7.3.cmd"
+        Set-Content -Path $candidate -Encoding Ascii -Value "@echo 7.3.9"
+
+        Test-PowerShell7Executable $candidate | Should Be $false
+    }
+
+    It "accepts the minimum PowerShell runtime" {
+        $candidate = Join-Path $TestDrive "pwsh-7.4.cmd"
+        Set-Content -Path $candidate -Encoding Ascii -Value "@echo 7.4.0"
+
+        Test-PowerShell7Executable $candidate | Should Be $true
+    }
+}
+
+Describe "PowerShell 7.4 discovery" {
+    It "returns the first candidate that launches PowerShell 7.4 or newer" {
         Mock Get-PowerShell7Candidates { @("invalid-pwsh.exe", "valid-pwsh.exe") }
         Mock Test-PowerShell7Executable { $Path -eq "valid-pwsh.exe" }
 
         Resolve-PowerShell7Executable | Should Be "valid-pwsh.exe"
     }
 
-    It "returns null when no candidate launches PowerShell 7" {
+    It "returns null when no candidate launches PowerShell 7.4 or newer" {
         Mock Get-PowerShell7Candidates { @("invalid-pwsh.exe") }
         Mock Test-PowerShell7Executable { $false }
 
         Resolve-PowerShell7Executable | Should Be $null
     }
+
 }
 
 Describe "PowerShell 7 installation" {
@@ -53,7 +70,7 @@ exit /b 0
 "@
 
             Invoke-WinGetPowerShellInstall $wingetPath | Should Be 0
-            (Get-Content $capturePath -Raw).Trim() | Should Be "install --id Microsoft.PowerShell --exact --source winget --silent --no-upgrade --accept-package-agreements --accept-source-agreements"
+            (Get-Content $capturePath -Raw).Trim() | Should Be "install --id Microsoft.PowerShell --exact --source winget --silent --accept-package-agreements --accept-source-agreements"
         }
         finally
         {

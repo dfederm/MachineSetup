@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+$script:MinimumPowerShellVersion = [version] "7.4"
 
 function Get-PowerShell7Candidates
 {
@@ -31,14 +32,15 @@ function Test-PowerShell7Executable
 
     try
     {
-        $versionOutput = & $Path -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.Major' 2>$null
+        $versionOutput = & $Path -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()' 2>$null
         if ($LASTEXITCODE -ne 0)
         {
             return $false
         }
 
-        $majorVersion = 0
-        return [int]::TryParse([string] ($versionOutput | Select-Object -Last 1), [ref] $majorVersion) -and $majorVersion -ge 7
+        $version = $null
+        return [version]::TryParse([string] ($versionOutput | Select-Object -Last 1), [ref] $version) -and
+            $version -ge $script:MinimumPowerShellVersion
     }
     catch
     {
@@ -66,7 +68,7 @@ function Invoke-WinGetPowerShellInstall
         [string] $WinGetPath
     )
 
-    & $WinGetPath install --id Microsoft.PowerShell --exact --source winget --silent --no-upgrade --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+    & $WinGetPath install --id Microsoft.PowerShell --exact --source winget --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
     return $LASTEXITCODE
 }
 
@@ -75,7 +77,7 @@ function Install-PowerShell7
     $winget = Get-Command winget.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $winget)
     {
-        throw "PowerShell 7 is not installed and WinGet is unavailable. Install or register Microsoft App Installer, then run MachineSetup again."
+        throw "PowerShell 7.4 or newer is not installed and WinGet is unavailable. Install or register Microsoft App Installer, then run MachineSetup again."
     }
 
     $wingetPath = if ($winget.Source) { $winget.Source } else { $winget.Path }
@@ -166,7 +168,7 @@ function Invoke-MachineSetupBootstrap
 
     if (-not $powerShellPath)
     {
-        throw "PowerShell 7 was installed, but pwsh.exe could not be launched. Verify the PowerShell app execution alias and run MachineSetup again."
+        throw "PowerShell 7.4 or newer was installed, but pwsh.exe could not be launched. Verify the PowerShell app execution alias and run MachineSetup again."
     }
 
     Invoke-DownloadedSetup -PowerShellPath $powerShellPath -SetupArguments $SetupArguments

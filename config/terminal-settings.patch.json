@@ -1,0 +1,62 @@
+{
+    "operations": [
+        {
+            "operation": "set",
+            "path": [
+                "defaultProfile"
+            ],
+            "value": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}"
+        },
+        {
+            "operation": "set",
+            "path": [
+                "profiles",
+                "defaults",
+                "startingDirectory"
+            ],
+            "value": "%CodeDir%"
+        },
+        {
+            "operation": "upsert",
+            "path": [
+                "actions"
+            ],
+            "match": {
+                "id": "User.sendInput.8F63D3A9"
+            },
+            "value": {
+                "command": {
+                    "action": "sendInput",
+                    "input": "\u001b\r"
+                },
+                "id": "User.sendInput.8F63D3A9"
+            }
+        },
+        {
+            "operation": "upsert",
+            "path": [
+                "keybindings"
+            ],
+            "match": {
+                "keys": "shift+enter"
+            },
+            "value": {
+                "id": "User.sendInput.8F63D3A9",
+                "keys": "shift+enter"
+            }
+        },
+        {
+            "operation": "upsert",
+            "path": [
+                "keybindings"
+            ],
+            "match": {
+                "keys": "ctrl+t"
+            },
+            "value": {
+                "id": "Terminal.OpenNewTab",
+                "keys": "ctrl+t"
+            }
+        }
+    ]
+}

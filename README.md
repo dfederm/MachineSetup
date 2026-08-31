@@ -11,7 +11,7 @@ This is my personal machine setup script. The script will configure some setting
 
 ## How to run
 
-MachineSetup targets modern Windows desktops with [WinGet](https://learn.microsoft.com/windows/package-manager/winget/) available. The bootstrap script can start in Windows PowerShell, but it installs or detects PowerShell 7 before running setup.
+MachineSetup targets modern Windows desktops with [WinGet](https://learn.microsoft.com/windows/package-manager/winget/) available. The bootstrap script can start in Windows PowerShell, but it installs or detects PowerShell 7.4 or newer before running setup.
 
 To run the scripts from the repo exactly as-is (recommended only for me, or if you've forked this repo and customized it yourself):
 
@@ -22,7 +22,7 @@ iex "& { $(iwr https://raw.githubusercontent.com/dfederm/MachineSetup/main/boots
 
 If WinGet is unavailable, install or register Microsoft App Installer before running the bootstrap.
 
-To manually download and tweak the scripts, clone or download the whole repo and run `setup.ps1` with PowerShell 7:
+To manually download and tweak the scripts, clone or download the whole repo and run `setup.ps1` with PowerShell 7.4 or newer:
 
 ```ps1
 # Interactive (will prompt for preferences)
