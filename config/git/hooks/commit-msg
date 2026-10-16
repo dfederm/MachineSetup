@@ -1,0 +1,83 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+@ARGV == 1 or die "Expected the commit message path\n";
+my $path = $ARGV[0];
+open my $input, '<:raw', $path or die "Cannot read $path: $!\n";
+local $/;
+my $message = <$input> // '';
+close $input or die "Cannot close $path: $!\n";
+
+my @lines = grep { length } ($message =~ /([^\r\n]*(?:\r\n|\n|\r|$))/g);
+my @body = map { s/[\r\n]+\z//r } @lines;
+exit 0 unless $message =~ /(?:\A|[\r\n])(?:Copilot-Session[ \t]*:|Co-authored-by[ \t]*:[ \t]*Copilot[ \t]*<(?:223556219\+)?Copilot\@users\.noreply\.github\.com>)/i;
+
+open my $config, '-|', 'git', 'config', '--get', 'core.commentChar'
+    or die "Cannot read Git comment character: $!\n";
+my $comment_char = <$config>;
+close $config;
+my $status = $? >> 8;
+die "Cannot read Git comment character (exit $status)\n"
+    if $status != 0 && $status != 1;
+$comment_char = '#' if $status == 1;
+$comment_char =~ s/\r?\n\z//;
+$comment_char = '#' if $comment_char eq 'auto';
+die "Invalid Git comment character\n" unless length($comment_char) == 1;
+
+my $prefix = quotemeta($comment_char);
+my $last = $#lines;
+$last-- while $last >= 0 && $body[$last] =~ /^[ \t]*\z/;
+my $comment_end = $last;
+$last-- while $last >= 0 && $body[$last] =~ /^[ \t]*(?:$prefix|\z)/;
+if ($last < $comment_end &&
+    !grep { $body[$_] =~ /^[ \t]*$prefix[ \t]+Please enter the commit message/ }
+          ($last + 1 .. $comment_end)) {
+    $last = $comment_end;
+}
+
+my $start = $last;
+while ($start >= 0) {
+    if ($body[$start] =~ /^[A-Za-z0-9][A-Za-z0-9-]*[ \t]*:/ ||
+        ($body[$start] =~ /^[ \t]*\z/ && $start > 0 &&
+         $body[$start - 1] =~ /^[A-Za-z0-9][A-Za-z0-9-]*[ \t]*:/)) {
+        $start--;
+    } else {
+        last;
+    }
+}
+$start++;
+exit 0 if $start > $last ||
+    ($start > 0 && $body[$start - 1] !~ /^[ \t]*\z/);
+
+my @remove = (0) x @lines;
+my $removed = 0;
+for my $i ($start .. $last) {
+    if ($body[$i] =~ /^Copilot-Session[ \t]*:/i ||
+        $body[$i] =~ /^Co-authored-by[ \t]*:[ \t]*Copilot[ \t]*<(?:223556219\+)?Copilot\@users\.noreply\.github\.com>[ \t]*\z/i) {
+        $remove[$i] = 1;
+        $removed++;
+    }
+}
+exit 0 unless $removed;
+
+my $group_start = $start;
+for my $i ($start .. $last + 1) {
+    next if $i <= $last && $body[$i] !~ /^[ \t]*\z/;
+
+    my $all_removed = 1;
+    for my $j ($group_start .. $i - 1) {
+        $all_removed = 0 unless $remove[$j];
+    }
+    $remove[$group_start - 1] = 1 if $all_removed && $group_start > 0;
+    $group_start = $i + 1;
+}
+
+my $result = '';
+for my $i (0 .. $#lines) {
+    $result .= $lines[$i] unless $remove[$i];
+}
+
+open my $output, '>:raw', $path or die "Cannot write $path: $!\n";
+print {$output} $result or die "Cannot write $path: $!\n";
+close $output or die "Cannot close $path: $!\n";
