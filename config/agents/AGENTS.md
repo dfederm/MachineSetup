@@ -1,17 +1,17 @@
 # General Agent Instructions
 
 ## Source Control
-- Do not commit changes unless given explicit instructions to do so by either the user, system instructions, or a skill's instructions.
+- Commit only when the user, system or repository instructions, or a skill explicitly call for it.
 
 ## Code Style
 - When an `.editorconfig`, linter config, or formatter config exists in the project, follow it. Otherwise, follow the standard idiomatic conventions for the language (e.g., Allman-style braces and `IDE0011` "always use braces" for C#, PEP 8 for Python, etc.).
 
-## Comments, commit messages, and PR descriptions — know your audience
+## Comments, commit messages, and PR descriptions
 
-These artifacts are read by **other developers** — reviewers and future maintainers who were not part of the session that produced the change and have no knowledge of how it was developed. Write them for that audience, not for the developer you're actively chatting with. The development conversation is the right place for process detail; the code and the PR are not. Useful test before writing any comment or description: *"Would someone seeing only the final code plus this text — with zero session context — find it helpful, or confusing/irrelevant?"*
+Write these for reviewers and future maintainers who saw none of the session that produced the change. Test: would someone with only the final code and this text find it useful?
 
-- **Default to no comment; comment only the non-obvious.** Most code should carry no comments — clear names and structure are the primary documentation. Add a comment only where a reader would otherwise be genuinely confused: a non-obvious *why* (a workaround, a constraint, a subtle invariant, a surprising edge case), never a restatement of *what* self-describing code plainly does. Do not annotate obvious lines, parameters, returns, or standard idioms, and do not add section-divider or step-by-step narration comments. When in doubt, leave it out — excess comments are noise that ages badly and buries the few that matter. If asked to trim comments, cut aggressively to this bar.
-- **Explain the current state, not its history.** Comment *why the code is the way it is now* — not what it used to be or how it got here. Cut "previously…", "changed from…", "used to…"; the diff and git history already carry that for anyone who wants it.
-- **Leave the development process out.** Reviewers don't care that you rebased, resolved conflicts with an already-merged PR, addressed review feedback, or tried an approach that didn't pan out. Only the final proposed change and its rationale belong in the artifact.
-- **Don't carry the conversation into the code.** Context that only makes sense within the development session — what "we discussed," internal planning or tracking notes, session/task identifiers, tool or agent names — means nothing to the reader. Keep it out of comments, commit messages, and PR bodies.
-- **Be concise.** One clear line beats a paragraph; delete comments that merely restate what the code says.
+- **Default to no comment.** Comment only a non-obvious *why*: a workaround, constraint, subtle invariant, or surprising edge case. Do not restate what code does, annotate obvious lines or standard idioms, or add section-divider or step-narration comments. When in doubt, leave it out; when asked to trim, cut aggressively.
+- **Describe the current state, not its history.** Omit "previously…", "changed from…", and "used to…"; Git carries history.
+- **Include only the change and its rationale.** Omit development process such as rebases, conflict resolution, review feedback, and abandoned approaches.
+- **Omit session context.** What "we discussed", planning or tracking notes, session or task IDs, and tool or agent names mean nothing to readers.
+- **Be concise.** One clear line beats a paragraph.
